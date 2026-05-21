@@ -15,7 +15,7 @@ const registerUserIntoDB = async (payload: IRegisterUser) => {
     [name, email, hashPassword, role],
   );
 
-  delete result.rows[0].password
+  delete result.rows[0].password;
 
   return result;
 };

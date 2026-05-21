@@ -1,19 +1,23 @@
 import type { Request, Response } from "express";
 import { authService } from "./auth.service";
+import sendResponse from "../../utils/sendResponse";
+import { StatusCodes } from "http-status-codes";
 
 const registerUser = async (req: Request, res: Response) => {
   try {
     const result = await authService.registerUserIntoDB(req.body);
-console.log(result);
-    res.status(201).json({
+
+    return sendResponse(res, {
+      statusCode: StatusCodes.CREATED,
       success: true,
       message: "User registered successfully",
       data: result.rows[0],
     });
-  } catch (error: any) {
-    res.status(500).json({
+  } catch (error: unknown) {
+    return sendResponse(res, {
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : "Something went wrong",
       error: error,
     });
   }
