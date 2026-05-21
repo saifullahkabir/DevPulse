@@ -23,6 +23,27 @@ const registerUser = async (req: Request, res: Response) => {
   }
 };
 
+const loginUser = async (req: Request, res: Response) => {
+  try {
+    const result = await authService.loginUserIntoDB(req.body);
+
+    return sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "Login successful",
+      data: result,
+    });
+  } catch (error) {
+    return sendResponse(res, {
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      success: false,
+      message: error instanceof Error ? error.message : "Something went wrong",
+      error: error,
+    });
+  }
+};
+
 export const authController = {
   registerUser,
+  loginUser,
 };
