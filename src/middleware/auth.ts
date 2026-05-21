@@ -30,7 +30,7 @@ const auth = (...roles: Role[]) => {
       //* check user is exists in db
       const userData = await pool.query(
         `
-        SELECT * FROM users WHERE id=$1
+        SELECT id, name, email, role FROM users WHERE id=$1
         `,
         [decoded.id],
       );
@@ -58,8 +58,28 @@ const auth = (...roles: Role[]) => {
       req.user = decoded;
 
       next();
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof jwt.JsonWebTokenError) {
+        return sendResponse(res, {
+          statusCode: StatusCodes.UNAUTHORIZED,
+          success: false,
+          message: "Invalid token!",
+          error: error,
+        });
+      }
+
+      if (error instanceof jwt.TokenExpiredError) {
+        return sendResponse(res, {
+          statusCode: StatusCodes.UNAUTHORIZED,
+          success: false,
+          message: "Token expired!",
+          error: error,
+        });
+      }
+
       next(error);
     }
   };
 };
+
+export default auth;
