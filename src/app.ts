@@ -7,6 +7,7 @@ import { initDB } from "./db";
 import { authRoute } from "./modules/auth/auth.route";
 import { issueRoute } from "./modules/issues/issue.route";
 import cors from "cors";
+import { globalErrorHandler } from "./middleware/globalErrorHandler";
 
 const app: Application = express();
 
@@ -23,5 +24,8 @@ app.get("/", (req: Request, res: Response) => {
     message: "DevPulse server...",
   });
 });
+
+//* global error handler
+app.use(globalErrorHandler);
 
 export default app;
