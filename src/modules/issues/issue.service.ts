@@ -1,6 +1,5 @@
 import { pool } from "../../db";
 import type { TGetIssuesQuery } from "../../types/issuequery";
-import { title } from "node:process";
 import type { ICreateIssue } from "./issue.interface";
 import type { TUpdateIssue } from "../../types/updateIssue";
 import type { TAuthUser } from "../../types/authUser";
@@ -142,8 +141,58 @@ const updateIssueIntoDB = async (
   payload: TUpdateIssue,
   user: TAuthUser,
 ) => {
+  const { title, description, type } = payload;
 
-  
+  //* check issue exists
+  const issueResult = await pool.query(
+    `
+    SELECT * FROM issues WHERE id=$1
+    `,
+    [id],
+  );
+
+  if (issueResult.rows.length === 0) {
+    throw new Error("Issue not found");
+  }
+
+  const issue = issueResult.rows[0];
+
+  //* role based access check
+  if (user.role === "contributor") {
+    //* contributor can only update own open issue
+    if (issue.reporter_id !== user.id) {
+      throw new Error("You cannot update this issue");
+    }
+
+    if (issue.status !== "open") {
+      throw new Error("You can only update open issues");
+    }
+  }
+
+  //* validation
+  if (description && description.length < 20) {
+    throw new Error("Description must be at least 20 characters");
+  }
+
+  if (title && title.length > 150) {
+    throw new Error("Title cannot exceed 150 characters");
+  }
+
+  //* update issue
+  const result = await pool.query(
+    `
+    UPDATE issues SET
+    title = COALESCE($1, title),
+    description = COALESCE($2, description),
+    type = COALESCE($3, type),
+    updated_at = NOW()
+
+    WHERE id=$4 RETURNING *
+    `,
+    [title, description, type, id],
+  );
+
+  return result;
 };
 
 export const issueService = {

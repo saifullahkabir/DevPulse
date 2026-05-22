@@ -2,11 +2,15 @@ import type { Request, Response } from "express";
 import sendResponse from "../../utils/sendResponse";
 import { StatusCodes } from "http-status-codes";
 import { issueService } from "./issue.service";
+import type { TAuthUser } from "../../types/authUser";
 
 const createIssue = async (req: Request, res: Response) => {
   const reporter_id = req.user?.id;
   try {
-    const result = await issueService.createIssueIntoDB(req.body, reporter_id);
+    const result = await issueService.createIssueIntoDB(
+      req.body,
+      reporter_id as number,
+    );
 
     return sendResponse(res, {
       statusCode: StatusCodes.CREATED,
@@ -90,7 +94,7 @@ const updateIssue = async (req: Request, res: Response) => {
     }
 
     //* logged in user (jwt)
-    const user = req.user;
+    const user = req.user as TAuthUser;
 
     const result = await issueService.updateIssueIntoDB(id, req.body, user);
 
@@ -98,11 +102,14 @@ const updateIssue = async (req: Request, res: Response) => {
       statusCode: StatusCodes.OK,
       success: true,
       message: "Issue updated successfully",
-      data: result,
+      data: result.rows[0],
     });
   } catch (error) {
     return sendResponse(res, {
-      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      statusCode:
+        error instanceof Error && error.message === "Issue not found"
+          ? StatusCodes.NOT_FOUND
+          : StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
       message: error instanceof Error ? error.message : "Something went wrong",
       error: error,
