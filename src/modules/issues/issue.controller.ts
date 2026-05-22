@@ -65,7 +65,10 @@ const getSingleIssue = async (req: Request, res: Response) => {
     });
   } catch (error) {
     return sendResponse(res, {
-      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      statusCode:
+        error instanceof Error && error.message === "Issue not found"
+          ? StatusCodes.NOT_FOUND
+          : StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
       message: error instanceof Error ? error.message : "Something went wrong",
       error: error,
