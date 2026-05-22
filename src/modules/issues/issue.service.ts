@@ -96,9 +96,12 @@ const getAllIssuesFromDB = async (payload: TGetIssuesQuery) => {
   return formattedIssues;
 };
 
-
+const getSingleIssueFromDB = async(id) => {
+  console.log(id);
+}
 
 export const issueService = {
   createIssueIntoDB,
   getAllIssuesFromDB,
+  getSingleIssueFromDB,
 };

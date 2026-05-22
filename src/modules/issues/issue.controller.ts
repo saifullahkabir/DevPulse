@@ -43,7 +43,28 @@ const getAllIssues = async (req: Request, res: Response) => {
   }
 };
 
+const getSingleIssue = async (req: Request, res: Response) => {
+  const id = req.params.id;
+  try {
+    const result = await issueService.getSingleIssueFromDB(id);
+
+    return sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    return sendResponse(res, {
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      success: false,
+      message: error instanceof Error ? error.message : "Something went wrong",
+      error: error,
+    });
+  }
+};
+
 export const issueController = {
   createIssue,
   getAllIssues,
+  getSingleIssue,
 };
