@@ -6,9 +6,11 @@ import express, {
 import { initDB } from "./db";
 import { authRoute } from "./modules/auth/auth.route";
 import { issueRoute } from "./modules/issues/issue.route";
+import cors from "cors";
 
 const app: Application = express();
 
+app.use(cors());
 app.use(express.json());
 
 initDB();
