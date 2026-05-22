@@ -47,7 +47,7 @@ const getSingleIssue = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
-    //* if issue id not exists
+    //* validate id
     if (!id) {
       return sendResponse(res, {
         statusCode: StatusCodes.BAD_REQUEST,
@@ -78,11 +78,26 @@ const getSingleIssue = async (req: Request, res: Response) => {
 
 const updateIssue = async (req: Request, res: Response) => {
   try {
-    const result = await issueService.updateIssueIntoDB(req.body);
+    const id = Number(req.params.id);
+
+    //* validate id
+    if (!id) {
+      return sendResponse(res, {
+        statusCode: StatusCodes.BAD_REQUEST,
+        success: false,
+        message: "Invalid issue id",
+      });
+    }
+
+    //* logged in user (jwt)
+    const user = req.user;
+
+    const result = await issueService.updateIssueIntoDB(id, req.body, user);
 
     return sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
+      message: "Issue updated successfully",
       data: result,
     });
   } catch (error) {

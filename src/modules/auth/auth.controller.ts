@@ -13,7 +13,7 @@ const registerUser = async (req: Request, res: Response) => {
       message: "User registered successfully",
       data: result.rows[0],
     });
-  } catch (error: unknown) {
+  } catch (error) {
     return sendResponse(res, {
       statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
