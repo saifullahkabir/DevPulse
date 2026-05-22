@@ -1,10 +1,10 @@
 import { pool } from "../../db";
 import type { TGetIssuesQuery } from "../../types/issuequery";
-import type { TCreateIssue } from "./issue.interface";
 import { title } from "node:process";
+import type { ICreateIssue } from "./issue.interface";
 
 const createIssueIntoDB = async (
-  payload: TCreateIssue,
+  payload: ICreateIssue,
   reporter_id: number,
 ) => {
   const { title, description, type } = payload;
@@ -135,8 +135,13 @@ const getSingleIssueFromDB = async (id: number) => {
   return formattedIssues;
 };
 
+const updateIssueIntoDB = async(payload: ICreateIssue) => {
+
+}
+
 export const issueService = {
   createIssueIntoDB,
   getAllIssuesFromDB,
   getSingleIssueFromDB,
+  updateIssueIntoDB
 };
