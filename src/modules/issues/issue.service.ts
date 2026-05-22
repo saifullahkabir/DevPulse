@@ -3,6 +3,7 @@ import type { TGetIssuesQuery } from "../../types/issuequery";
 import { title } from "node:process";
 import type { ICreateIssue } from "./issue.interface";
 import type { TUpdateIssue } from "../../types/updateIssue";
+import type { TAuthUser } from "../../types/authUser";
 
 const createIssueIntoDB = async (
   payload: ICreateIssue,
@@ -136,14 +137,18 @@ const getSingleIssueFromDB = async (id: number) => {
   return formattedIssues;
 };
 
-const updateIssueIntoDB = async(id: number, payload: TUpdateIssue, user) => {
+const updateIssueIntoDB = async (
+  id: number,
+  payload: TUpdateIssue,
+  user: TAuthUser,
+) => {
 
-
-}
+  
+};
 
 export const issueService = {
   createIssueIntoDB,
   getAllIssuesFromDB,
   getSingleIssueFromDB,
-  updateIssueIntoDB
+  updateIssueIntoDB,
 };

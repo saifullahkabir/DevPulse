@@ -1,10 +1,11 @@
-import jwt, { type JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import type { NextFunction, Request, Response } from "express";
 import sendResponse from "../utils/sendResponse";
 import { StatusCodes } from "http-status-codes";
 import config from "../config";
 import { pool } from "../db";
 import type { Role } from "../enums/role.enum";
+import type { TAuthUser } from "../types/authUser";
 
 const auth = (...roles: Role[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -24,7 +25,7 @@ const auth = (...roles: Role[]) => {
       const decoded = jwt.verify(
         token,
         config.jwt_access_secret as string,
-      ) as JwtPayload;
+      ) as TAuthUser;
 
       //   console.log(decoded);
       //* check user is exists in db
@@ -51,7 +52,7 @@ const auth = (...roles: Role[]) => {
         return sendResponse(res, {
           statusCode: StatusCodes.FORBIDDEN,
           success: false,
-          message: "You are not authorized!",
+          message: "Forbidden access",
         });
       }
 
