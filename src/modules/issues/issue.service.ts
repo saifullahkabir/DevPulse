@@ -26,6 +26,11 @@ const createIssueIntoDB = async (
   return result;
 };
 
+const getAllIssuesFromDB = async() => {
+
+}
+
 export const issueService = {
   createIssueIntoDB,
+  getAllIssuesFromDB
 };
