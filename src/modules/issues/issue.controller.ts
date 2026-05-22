@@ -44,8 +44,18 @@ const getAllIssues = async (req: Request, res: Response) => {
 };
 
 const getSingleIssue = async (req: Request, res: Response) => {
-  const id = req.params.id;
   try {
+    const id = Number(req.params.id);
+
+    //* if issue id not exists
+    if (!id) {
+      return sendResponse(res, {
+        statusCode: StatusCodes.BAD_REQUEST,
+        success: false,
+        message: "Invalid issue id",
+      });
+    }
+
     const result = await issueService.getSingleIssueFromDB(id);
 
     return sendResponse(res, {

@@ -96,9 +96,44 @@ const getAllIssuesFromDB = async (payload: TGetIssuesQuery) => {
   return formattedIssues;
 };
 
-const getSingleIssueFromDB = async(id) => {
-  console.log(id);
-}
+const getSingleIssueFromDB = async (id: number) => {
+  const issueResult = await pool.query(
+    `
+    SELECT * FROM issues WHERE id=$1
+    `,
+    [id],
+  );
+
+  //* issue not found check
+  if (issueResult.rows.length === 0) {
+    throw new Error("Issue not found");
+  }
+
+  const issue = issueResult.rows[0];
+
+  //* get reporter info
+  const reporterResult = await pool.query(
+    `
+    SELECT id, name, role FROM users WHERE id=$1
+    `,
+    [issue.reporter_id],
+  );
+
+  const reporter = reporterResult.rows[0];
+
+  const formattedIssues = {
+    id: issue.id,
+    title: issue.title,
+    description: issue.description,
+    type: issue.type,
+    status: issue.status,
+    reporter: reporter,
+    created_at: issue.created_at,
+    updated_at: issue.updated_at,
+  };
+
+  return formattedIssues;
+};
 
 export const issueService = {
   createIssueIntoDB,
