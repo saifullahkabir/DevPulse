@@ -195,6 +195,8 @@ const updateIssueIntoDB = async (
   return result;
 };
 
+const deleteIssueIntoDB = async (id: number) => {};
+
 export const issueService = {
   createIssueIntoDB,
   getAllIssuesFromDB,

@@ -17,5 +17,6 @@ router.patch(
   auth(Role.CONTRIBUTOR, Role.MAINTAINER),
   issueController.updateIssue,
 );
+router.delete("/:id", auth(Role.MAINTAINER), issueController.deleteIssue)
 
 export const issueRoute = router;
