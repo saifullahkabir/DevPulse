@@ -1,5 +1,7 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
+
+   import { createRequire } from 'module';
+   const require = createRequire(import.meta.url);
+  
 
 // src/app.ts
 import express from "express";
@@ -17,18 +19,18 @@ import { Pool } from "pg";
 import dotenv from "dotenv";
 import path from "path";
 dotenv.config({
-  path: path.join(process.cwd(), ".env"),
+  path: path.join(process.cwd(), ".env")
 });
 var config = {
   port: Number(process.env.PORT),
   connection_string: process.env.CONNECTION_STRING,
-  jwt_access_secret: process.env.JWT_ACCESS_SECRET,
+  jwt_access_secret: process.env.JWT_ACCESS_SECRET
 };
 var config_default = config;
 
 // src/db/index.ts
 var pool = new Pool({
-  connectionString: config_default.connection_string,
+  connectionString: config_default.connection_string
 });
 var initDB = async () => {
   try {
@@ -79,7 +81,7 @@ var registerUserIntoDB = async (payload) => {
     INSERT INTO users(name, email, password, role) VALUES ($1, $2, $3, COALESCE($4, 'contributor'))
     RETURNING *
     `,
-    [name, email, hashPassword, role],
+    [name, email, hashPassword, role]
   );
   delete result.rows[0].password;
   return result;
@@ -90,7 +92,7 @@ var loginUserIntoDB = async (payload) => {
     `
     SELECT * FROM users WHERE email=$1
     `,
-    [email],
+    [email]
   );
   if (userData.rows.length === 0) {
     throw new Error("Invalid Credentials!");
@@ -103,20 +105,20 @@ var loginUserIntoDB = async (payload) => {
   const jwtpayload = {
     id: user.id,
     name: user.name,
-    role: user.role,
+    role: user.role
   };
   const accessToken = jwt.sign(jwtpayload, config_default.jwt_access_secret, {
-    expiresIn: "7d",
+    expiresIn: "7d"
   });
   delete user.password;
   return {
     token: accessToken,
-    user,
+    user
   };
 };
 var authService = {
   registerUserIntoDB,
-  loginUserIntoDB,
+  loginUserIntoDB
 };
 
 // src/utils/sendResponse.ts
@@ -125,7 +127,7 @@ var sendResponse = (res, data) => {
     success: data.success,
     message: data.message,
     data: data.data,
-    error: data.error,
+    error: data.error
   });
 };
 var sendResponse_default = sendResponse;
@@ -139,14 +141,14 @@ var registerUser = async (req, res) => {
       statusCode: StatusCodes.CREATED,
       success: true,
       message: "User registered successfully",
-      data: result.rows[0],
+      data: result.rows[0]
     });
   } catch (error) {
     return sendResponse_default(res, {
       statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
       message: error instanceof Error ? error.message : "Something went wrong",
-      error,
+      error
     });
   }
 };
@@ -157,20 +159,20 @@ var loginUser = async (req, res) => {
       statusCode: StatusCodes.OK,
       success: true,
       message: "Login successful",
-      data: result,
+      data: result
     });
   } catch (error) {
     return sendResponse_default(res, {
       statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       success: false,
       message: error instanceof Error ? error.message : "Something went wrong",
-      error,
+      error
     });
   }
 };
 var authController = {
   registerUser,
-  loginUser,
+  loginUser
 };
 
 // src/modules/auth/auth.route.ts
@@ -199,7 +201,7 @@ var createIssueIntoDB = async (payload, reporter_id) => {
     INSERT INTO issues(title, description, type, reporter_id) VALUES($1, $2, $3, $4)
     RETURNING *
     `,
-    [title, description, type, reporter_id],
+    [title, description, type, reporter_id]
   );
   return result;
 };
@@ -232,7 +234,7 @@ var getAllIssuesFromDB = async (payload) => {
       `
       SELECT id, name, role FROM users WHERE id=$1
       `,
-      [issue.reporter_id],
+      [issue.reporter_id]
     );
     const reporter = reporterResult.rows[0];
     formattedIssues.push({
@@ -243,7 +245,7 @@ var getAllIssuesFromDB = async (payload) => {
       status: issue.status,
       reporter,
       created_at: issue.created_at,
-      updated_at: issue.updated_at,
+      updated_at: issue.updated_at
     });
   }
   return formattedIssues;
@@ -253,7 +255,7 @@ var getSingleIssueFromDB = async (id) => {
     `
     SELECT * FROM issues WHERE id=$1
     `,
-    [id],
+    [id]
   );
   if (issueResult.rows.length === 0) {
     throw new Error("Issue not found");
@@ -263,7 +265,7 @@ var getSingleIssueFromDB = async (id) => {
     `
     SELECT id, name, role FROM users WHERE id=$1
     `,
-    [issue.reporter_id],
+    [issue.reporter_id]
   );
   const reporter = reporterResult.rows[0];
   const formattedIssues = {
@@ -274,17 +276,17 @@ var getSingleIssueFromDB = async (id) => {
     status: issue.status,
     reporter,
     created_at: issue.created_at,
-    updated_at: issue.updated_at,
+    updated_at: issue.updated_at
   };
   return formattedIssues;
 };
 var updateIssueIntoDB = async (id, payload, user) => {
-  const { title, description, type } = payload;
+  const { title, description, type, status } = payload;
   const issueResult = await pool.query(
     `
     SELECT * FROM issues WHERE id=$1
     `,
-    [id],
+    [id]
   );
   if (issueResult.rows.length === 0) {
     throw new Error("Issue not found");
@@ -296,6 +298,9 @@ var updateIssueIntoDB = async (id, payload, user) => {
     }
     if (issue.status !== "open") {
       throw new Error("You can only update open issues");
+    }
+    if (status) {
+      throw new Error("You cannot update issue status");
     }
   }
   if (description && description.length < 20) {
@@ -310,11 +315,12 @@ var updateIssueIntoDB = async (id, payload, user) => {
     title = COALESCE($1, title),
     description = COALESCE($2, description),
     type = COALESCE($3, type),
+    status = COALESCE($4, status),
     updated_at = NOW()
 
-    WHERE id=$4 RETURNING *
+    WHERE id=$5 RETURNING *
     `,
-    [title, description, type, id],
+    [title, description, type, status, id]
   );
   return result;
 };
@@ -323,7 +329,7 @@ var deleteIssueIntoDB = async (id) => {
     `
     SELECT * FROM issues WHERE id=$1
     `,
-    [id],
+    [id]
   );
   if (issueResult.rows.length === 0) {
     throw new Error("Issue not found");
@@ -332,7 +338,7 @@ var deleteIssueIntoDB = async (id) => {
     `
     DELETE FROM issues WHERE id=$1
     `,
-    [id],
+    [id]
   );
   return result;
 };
@@ -341,26 +347,29 @@ var issueService = {
   getAllIssuesFromDB,
   getSingleIssueFromDB,
   updateIssueIntoDB,
-  deleteIssueIntoDB,
+  deleteIssueIntoDB
 };
 
 // src/modules/issues/issue.controller.ts
 var createIssue = async (req, res) => {
   const reporter_id = req.user?.id;
   try {
-    const result = await issueService.createIssueIntoDB(req.body, reporter_id);
+    const result = await issueService.createIssueIntoDB(
+      req.body,
+      reporter_id
+    );
     return sendResponse_default(res, {
       statusCode: StatusCodes2.CREATED,
       success: true,
       message: "Issue created successfully",
-      data: result.rows[0],
+      data: result.rows[0]
     });
   } catch (error) {
     return sendResponse_default(res, {
       statusCode: StatusCodes2.INTERNAL_SERVER_ERROR,
       success: false,
       message: error instanceof Error ? error.message : "Something went wrong",
-      error,
+      error
     });
   }
 };
@@ -370,14 +379,14 @@ var getAllIssues = async (req, res) => {
     return sendResponse_default(res, {
       statusCode: StatusCodes2.OK,
       success: true,
-      data: result,
+      data: result
     });
   } catch (error) {
     return sendResponse_default(res, {
       statusCode: StatusCodes2.INTERNAL_SERVER_ERROR,
       success: false,
       message: error instanceof Error ? error.message : "Something went wrong",
-      error,
+      error
     });
   }
 };
@@ -388,24 +397,21 @@ var getSingleIssue = async (req, res) => {
       return sendResponse_default(res, {
         statusCode: StatusCodes2.BAD_REQUEST,
         success: false,
-        message: "Invalid issue id",
+        message: "Invalid issue id"
       });
     }
     const result = await issueService.getSingleIssueFromDB(id);
     return sendResponse_default(res, {
       statusCode: StatusCodes2.OK,
       success: true,
-      data: result,
+      data: result
     });
   } catch (error) {
     return sendResponse_default(res, {
-      statusCode:
-        error instanceof Error && error.message === "Issue not found"
-          ? StatusCodes2.NOT_FOUND
-          : StatusCodes2.INTERNAL_SERVER_ERROR,
+      statusCode: error instanceof Error && error.message === "Issue not found" ? StatusCodes2.NOT_FOUND : StatusCodes2.INTERNAL_SERVER_ERROR,
       success: false,
       message: error instanceof Error ? error.message : "Something went wrong",
-      error,
+      error
     });
   }
 };
@@ -416,7 +422,7 @@ var updateIssue = async (req, res) => {
       return sendResponse_default(res, {
         statusCode: StatusCodes2.BAD_REQUEST,
         success: false,
-        message: "Invalid issue id",
+        message: "Invalid issue id"
       });
     }
     const user = req.user;
@@ -425,17 +431,14 @@ var updateIssue = async (req, res) => {
       statusCode: StatusCodes2.OK,
       success: true,
       message: "Issue updated successfully",
-      data: result.rows[0],
+      data: result.rows[0]
     });
   } catch (error) {
     return sendResponse_default(res, {
-      statusCode:
-        error instanceof Error && error.message === "Issue not found"
-          ? StatusCodes2.NOT_FOUND
-          : StatusCodes2.INTERNAL_SERVER_ERROR,
+      statusCode: error instanceof Error && error.message === "Issue not found" ? StatusCodes2.NOT_FOUND : StatusCodes2.INTERNAL_SERVER_ERROR,
       success: false,
       message: error instanceof Error ? error.message : "Something went wrong",
-      error,
+      error
     });
   }
 };
@@ -446,24 +449,21 @@ var deleteIssue = async (req, res) => {
       return sendResponse_default(res, {
         statusCode: StatusCodes2.BAD_REQUEST,
         success: false,
-        message: "Invalid issue id",
+        message: "Invalid issue id"
       });
     }
     const result = await issueService.deleteIssueIntoDB(id);
     return sendResponse_default(res, {
       statusCode: StatusCodes2.OK,
       success: true,
-      message: "Issue deleted successfully",
+      message: "Issue deleted successfully"
     });
   } catch (error) {
     return sendResponse_default(res, {
-      statusCode:
-        error instanceof Error && error.message === "Issue not found"
-          ? StatusCodes2.NOT_FOUND
-          : StatusCodes2.INTERNAL_SERVER_ERROR,
+      statusCode: error instanceof Error && error.message === "Issue not found" ? StatusCodes2.NOT_FOUND : StatusCodes2.INTERNAL_SERVER_ERROR,
       success: false,
       message: error instanceof Error ? error.message : "Something went wrong",
-      error,
+      error
     });
   }
 };
@@ -472,7 +472,7 @@ var issueController = {
   getAllIssues,
   getSingleIssue,
   updateIssue,
-  deleteIssue,
+  deleteIssue
 };
 
 // src/middleware/auth.ts
@@ -486,21 +486,24 @@ var auth = (...roles) => {
         return sendResponse_default(res, {
           statusCode: StatusCodes3.UNAUTHORIZED,
           success: false,
-          message: "Unauthorized access!",
+          message: "Unauthorized access!"
         });
       }
-      const decoded = jwt2.verify(token, config_default.jwt_access_secret);
+      const decoded = jwt2.verify(
+        token,
+        config_default.jwt_access_secret
+      );
       const userData = await pool.query(
         `
         SELECT id, name, role FROM users WHERE id=$1
         `,
-        [decoded.id],
+        [decoded.id]
       );
       if (userData.rows.length === 0) {
         return sendResponse_default(res, {
           statusCode: StatusCodes3.NOT_FOUND,
           success: false,
-          message: "User not found!",
+          message: "User not found!"
         });
       }
       const user = userData.rows[0];
@@ -508,7 +511,7 @@ var auth = (...roles) => {
         return sendResponse_default(res, {
           statusCode: StatusCodes3.FORBIDDEN,
           success: false,
-          message: "Forbidden access",
+          message: "Forbidden access"
         });
       }
       req.user = decoded;
@@ -519,7 +522,7 @@ var auth = (...roles) => {
           statusCode: StatusCodes3.UNAUTHORIZED,
           success: false,
           message: "Invalid token!",
-          error,
+          error
         });
       }
       if (error instanceof jwt2.TokenExpiredError) {
@@ -527,7 +530,7 @@ var auth = (...roles) => {
           statusCode: StatusCodes3.UNAUTHORIZED,
           success: false,
           message: "Token expired!",
-          error,
+          error
         });
       }
       next(error);
@@ -541,20 +544,16 @@ var router2 = Router2();
 router2.post(
   "/",
   auth_default("contributor" /* CONTRIBUTOR */, "maintainer" /* MAINTAINER */),
-  issueController.createIssue,
+  issueController.createIssue
 );
 router2.get("/", issueController.getAllIssues);
 router2.get("/:id", issueController.getSingleIssue);
 router2.patch(
   "/:id",
   auth_default("contributor" /* CONTRIBUTOR */, "maintainer" /* MAINTAINER */),
-  issueController.updateIssue,
+  issueController.updateIssue
 );
-router2.delete(
-  "/:id",
-  auth_default("maintainer" /* MAINTAINER */),
-  issueController.deleteIssue,
-);
+router2.delete("/:id", auth_default("maintainer" /* MAINTAINER */), issueController.deleteIssue);
 var issueRoute = router2;
 
 // src/app.ts
@@ -565,7 +564,7 @@ var globalErrorHandler = (err, req, res, next) => {
   const message = err instanceof Error ? err.message : "Internal Server Error";
   res.status(500).json({
     success: false,
-    message,
+    message
   });
 };
 
@@ -573,7 +572,7 @@ var globalErrorHandler = (err, req, res, next) => {
 var notFoundHandler = (req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found",
+    message: "Route not found"
   });
 };
 
@@ -585,7 +584,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/issues", issueRoute);
 app.get("/", (req, res) => {
   return res.status(200).json({
-    message: "DevPulse server...",
+    message: "DevPulse server..."
   });
 });
 app.use(globalErrorHandler);

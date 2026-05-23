@@ -41,6 +41,52 @@ It allows team members to report bugs, suggest features, and manage issue workfl
 
 ---
 
+## API Endpoints
+
+### 🔐 Auth Module
+
+- POST /api/auth/signup → Register User  
+- POST /api/auth/login → Login User  
+
+---
+
+### 🐞 Issues Module
+
+- POST /api/issues → Create Issue (Auth required)  
+- GET /api/issues → Get All Issues  
+- GET /api/issues/:id → Get Single Issue  
+- PATCH /api/issues/:id → Update Issue (Auth required)  
+- DELETE /api/issues/:id → Delete Issue (Maintainer only)  
+
+---
+
+## Database Schema Summary
+
+### 👤 users table
+
+- id → Auto-increment primary key  
+- name → Full name of user  
+- email → Unique login email  
+- password → Hashed password (never returned)  
+- role → contributor | maintainer  
+- created_at → Account creation timestamp  
+- updated_at → Last update timestamp  
+
+---
+
+### 🐞 issues table
+
+- id → Auto-increment primary key  
+- title → Issue title (max 150 chars)  
+- description → Detailed issue description (min 20 chars)  
+- type → bug | feature_request  
+- status → open | in_progress | resolved  
+- reporter_id → User ID who created issue  
+- created_at → Issue creation timestamp  
+- updated_at → Last update timestamp  
+
+---
+
 ## Setup Instructions
 
 ### 1. Clone repository

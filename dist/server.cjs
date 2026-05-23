@@ -304,7 +304,7 @@ var getSingleIssueFromDB = async (id) => {
   return formattedIssues;
 };
 var updateIssueIntoDB = async (id, payload, user) => {
-  const { title, description, type } = payload;
+  const { title, description, type, status } = payload;
   const issueResult = await pool.query(
     `
     SELECT * FROM issues WHERE id=$1
@@ -322,6 +322,9 @@ var updateIssueIntoDB = async (id, payload, user) => {
     if (issue.status !== "open") {
       throw new Error("You can only update open issues");
     }
+    if (status) {
+      throw new Error("You cannot update issue status");
+    }
   }
   if (description && description.length < 20) {
     throw new Error("Description must be at least 20 characters");
@@ -335,11 +338,12 @@ var updateIssueIntoDB = async (id, payload, user) => {
     title = COALESCE($1, title),
     description = COALESCE($2, description),
     type = COALESCE($3, type),
+    status = COALESCE($4, status),
     updated_at = NOW()
 
-    WHERE id=$4 RETURNING *
+    WHERE id=$5 RETURNING *
     `,
-    [title, description, type, id]
+    [title, description, type, status, id]
   );
   return result;
 };
