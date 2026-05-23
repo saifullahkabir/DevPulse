@@ -141,7 +141,7 @@ const updateIssueIntoDB = async (
   payload: TUpdateIssue,
   user: TAuthUser,
 ) => {
-  const { title, description, type } = payload;
+  const { title, description, type, status } = payload;
 
   //* check issue exists
   const issueResult = await pool.query(
@@ -167,6 +167,11 @@ const updateIssueIntoDB = async (
     if (issue.status !== "open") {
       throw new Error("You can only update open issues");
     }
+
+    //* contributor cannot change status
+    if (status) {
+      throw new Error("You cannot update issue status");
+    }
   }
 
   //* validation
@@ -185,11 +190,12 @@ const updateIssueIntoDB = async (
     title = COALESCE($1, title),
     description = COALESCE($2, description),
     type = COALESCE($3, type),
+    status = COALESCE($4, status),
     updated_at = NOW()
 
-    WHERE id=$4 RETURNING *
+    WHERE id=$5 RETURNING *
     `,
-    [title, description, type, id],
+    [title, description, type, status, id],
   );
 
   return result;
