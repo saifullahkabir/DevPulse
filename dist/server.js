@@ -379,6 +379,7 @@ var getAllIssues = async (req, res) => {
     return sendResponse_default(res, {
       statusCode: StatusCodes2.OK,
       success: true,
+      message: "Issues retrived successfully",
       data: result
     });
   } catch (error) {
@@ -404,6 +405,7 @@ var getSingleIssue = async (req, res) => {
     return sendResponse_default(res, {
       statusCode: StatusCodes2.OK,
       success: true,
+      message: "Issue retrived successfully",
       data: result
     });
   } catch (error) {

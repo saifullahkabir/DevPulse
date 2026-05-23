@@ -35,6 +35,7 @@ const getAllIssues = async (req: Request, res: Response) => {
     return sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
+      message: "Issues retrived successfully",
       data: result,
     });
   } catch (error) {
@@ -65,6 +66,7 @@ const getSingleIssue = async (req: Request, res: Response) => {
     return sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
+      message: "Issue retrived successfully",
       data: result,
     });
   } catch (error) {
