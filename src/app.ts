@@ -3,7 +3,6 @@ import express, {
   type Request,
   type Response,
 } from "express";
-import { initDB } from "./db";
 import { authRoute } from "./modules/auth/auth.route";
 import { issueRoute } from "./modules/issues/issue.route";
 import cors from "cors";
@@ -14,8 +13,6 @@ const app: Application = express();
 
 app.use(cors());
 app.use(express.json());
-
-initDB();
 
 app.use("/api/auth", authRoute);
 app.use("/api/issues", issueRoute);
@@ -31,4 +28,5 @@ app.use(globalErrorHandler);
 
 //* not found handler
 app.use(notFoundHandler);
+
 export default app;
